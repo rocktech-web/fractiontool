@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Batwara & Fraction Tool — HTML App</title>
+<style>
+  :root{--teal:#0ea5a0;--teal-dark:#0b8b80;--muted:#6b7280;--bg:#2f3f48}
+  body{margin:0;font-family: "Segoe UI", Roboto, Arial, sans-serif;background:var(--bg);color:#0f172a}
+  .container{max-width:1100px;margin:28px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(2,6,23,0.35)}
+  header{background:linear-gradient(180deg,#20c6b0,#138f82);padding:18px 24px;color:#07363a;font-weight:700;font-size:28px}
+  main{padding:18px}
+  .tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .tab-btn{padding:10px 16px;border-radius:6px;border:2px solid rgba(10,70,70,0.08);background:#f0f6f5;cursor:pointer;font-weight:700}
+  .tab-btn.active{background:#e6fffb;border-color:var(--teal);box-shadow:inset 0 -4px 0 rgba(0,0,0,0.02)}
+  .panel{display:none;padding:12px 6px}
+  .panel.active{display:block}
+  textarea, input[type="text"], input[type="number"], input[type="password"]{width:100%;padding:10px;border-radius:6px;border:1px solid #d1d5db;font-size:15px;box-sizing:border-box}
+  .row{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+  .col{flex:1}
+  .btn{background:linear-gradient(180deg,#19b7a3,#0b8b80);color:white;padding:10px 16px;border-radius:24px;border:0;cursor:pointer;font-weight:700}
+  .btn.ghost{background:#eef6f5;color:#0b8b80;border:1px solid #bfe9df}
+  .result-box{background:#f3f4f6;padding:14px;border-radius:8px;min-height:48px;border:1px solid #e6e9ea}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th,td{padding:8px;border:1px solid #e6e9ea;text-align:left}
+  .small{font-size:13px;color:var(--muted)}
+  footer{padding:10px;text-align:center;background:#e6fffb;color:#044; font-size:13px}
+  .login-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#6b7280}
+  .login-card{width:720px;background:#1f3a44;color:white;padding:28px;border-radius:10px;display:flex;gap:20px;align-items:center}
+  .login-left{flex:1}
+  .login-right{flex:1;background:linear-gradient(135deg,#06b6a4,#089185);border-radius:8px;padding:20px}
+  label{display:block;margin-bottom:6px;font-weight:700;color:#0b8b80}
+  .note{font-size:13px;color:#083;display:block;margin-top:8px}
+  @media(max-width:800px){.login-card{width:92%;flex-direction:column} .row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="container" id="app">
+  <header>Batwara & Fraction Tool — HTML App</header>
+  <main>
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="tab1">बटवारा करें</button>
+      <button class="tab-btn" data-tab="tab2">भिन्‍न जोड़ें</button>
+      <button class="tab-btn" data-tab="tab3">भिन्‍न घटायें</button>
+      <button class="tab-btn" data-tab="tab4">भिन्‍न विभाजित करें</button>
+    </div>
+
+    <!-- TAB 1 -->
+    <section id="tab1" class="panel active" role="tabpanel" aria-labelledby="tab1">
+      <div class="card">
+        <div class="top">
+          <div class="field">
+            <label>सर्वेक्षण संख्या (User Input)</label>
+            <input id="surveyNo" type="text" min="0" placeholder="उदा. 1024">
+          </div>
+          <div class="field">
+            <label>कुल रकवा (User Input)</label>
+            <input id="totalArea" type="text" placeholder="उदा. 0.0200">
+            <div class="small">Decimal रखें — internal गणना fractions से होगी।</div>
+          </div>
+          <div class="actions" style="display:flex;gap:8px">
+            <button id="btnPaste" class="btn">Paste to Table</button>
+            <button id="btnCompute" class="btn">Compute</button>
+            <button id="btnSample" class="btn ghost">Load Sample</button>
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <label>Excel से पेस्ट करें (हर लाइन: name[TAB]fraction या name, fraction या सिर्फ fraction)</label>
+          <textarea id="pasteArea" rows="5" placeholder="Example: राम पिता राधेश्याम\t1/2"></textarea>
+        </div>
+
+        <div style="margin-top:12px;overflow:auto">
+          <table id="ownersTable" aria-label="owners">
+            <thead>
+              <tr><th>#</th><th></th><th style="text-align:left">भूस्वामी विवरण</th><th>हिस्सा</th><th>रकवा (orig)</th><th>विभाजित रकवा</th><th>शेष हिस्सा पुनर्निधारित</th><th>शेष रकवा</th></tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr><td colspan="4" style="text-align:right"><strong>योग-</strong></td><td id="tfoot_total">-</td><td id="tfoot_divided">-</td><td id="tfoot_recalc">-</td><td id="tfoot_remain">-</td></tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="summary">
+          <div class="box">
+            <label>योग विभाजित रकवा (Auto)</label>
+            <input id="sumDivided" readonly>
+            <label style="margin-top:8px">शेष रकवा (Auto)</label>
+            <input id="remainingArea" readonly>
+          </div>
+
+          <div class="box">
+            <label>1. मौजूदा अभिलेखीय स्थिति (Combined)</label>
+            <textarea id="combinedBefore" rows="4" readonly></textarea>
+            <button id="copyBefore" class="btn ghost" style="margin-top:8px">Copy Data</button>
+          </div>
+
+          <div class="box">
+            <label>2. बटवारा पश्चात प्राप्त स्थिति (Combined)</label>
+            <textarea id="combinedAfter" rows="4" readonly></textarea>
+            <button id="copyAfter" class="btn ghost" style="margin-top:8px">Copy Data</button>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <button id="exportCSV" class="btn ghost">Export CSV</button>
+          <span class="small">यदि paste काम न करे — DevTools (F12) खोलें और Console में error बताइए।</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2 -->
+    <section id="tab2" class="panel" role="tabpanel" aria-labelledby="tab2">
+      <p class="small">Excel से fractions paste करें (हर लाइन में एक fraction जैसे 1/4 या comma separated चलेंगे)</p>
+      <textarea id="tab2_input" rows="8" placeholder="Paste fractions or lines: 1/4, 2/5"></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn" id="tab2_sum">Sum Fraction</button>
+        <button class="btn ghost" id="tab2_clear">Clear</button>
+        <button class="btn ghost" id="tab2_sample">Load Sample</button>
+      </div>
+      <h4 style="margin-top:12px">Result:</h4>
+      <div id="tab2_result" class="result-box"></div>
+    </section>
+
+    <!-- TAB 3 -->
+    <section id="tab3" class="panel" role="tabpanel" aria-labelledby="tab3">
+      <div class="row">
+        <div class="col">
+          <label>मूल हिस्सा (Base) — e.g., 3/4</label>
+          <input id="tab3_base" type="text" placeholder="e.g., 3/4" />
+        </div>
+        <div class="col">
+          <label>घटाने योग्य हिस्सा (subtract) — comma/newline multiple allowed</label>
+          <input id="tab3_sub" type="text" placeholder="e.g., 1/8, 1/5" />
+        </div>
+        <div style="width:180px;display:flex;gap:8px">
+          <button class="btn" id="tab3_compute">Compute</button>
+          <button class="btn ghost" id="tab3_clear">Clear</button>
+        </div>
+      </div>
+      <h4 style="margin-top:12px">Result:</h4>
+      <div id="tab3_result" class="result-box"></div>
+    </section>
+
+    <!-- TAB 4 -->
+    <section id="tab4" class="panel" role="tabpanel" aria-labelledby="tab4">
+      <div class="row">
+        <div class="col">
+          <label>मूल हिस्सा (Base) — e.g., 3/4</label>
+          <input id="tab4_base" type="text" placeholder="e.g., 3/4" />
+        </div>
+        <div class="col">
+          <label>कितने भागों में विभाजित (into how many parts) — integer</label>
+          <input id="tab4_parts" type="number" min="1" placeholder="e.g., 2" />
+        </div>
+        <div style="width:220px;display:flex;gap:8px">
+          <button class="btn" id="tab4_divide">Divide</button>
+          <button class="btn ghost" id="tab4_clear">Clear</button>
+        </div>
+      </div>
+      <h4 style="margin-top:12px">Result:</h4>
+      <div id="tab4_result" class="result-box"></div>
+    </section>
+
+  </main>
+  <footer>Made with care · Local (client-side) HTML tool · Data stays in your browser only</footer>
+</div>
+
+<!-- Login overlay -->
+
+
+
+<div id="login" class="login-overlay" role="dialog" aria-modal="true">
+  <div class="login-card">
+    <div class="login-left">
+      <h2 style="margin-top:0;color:#fff">Login</h2>
+      <label>User Name</label>
+      <input id="login_user" type="text" placeholder="Enter Username" autocomplete="off" value="">
+      <label style="margin-top:10px">Password</label>
+      <input id="login_pass" type="password" placeholder="Enter Password" autocomplete="new-password" value="">
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn" id="login_btn">Login</button>
+        <button class="btn ghost" id="login_demo">Demo (auto)</button>
+      </div>
+      <p class="note">Contact: <strong>78631689</strong></p>
+    </div>
+    <div class="login-right">
+      <h3 style="color:white;margin-top:0">Welcome Back!</h3>
+      <p style="color:#e6fff9">This tool runs fully in the browser. Your data is never sent anywhere.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// All JS runs after DOM ready
+document.addEventListener('DOMContentLoaded', function(){
+  // ----- Helpers -----
+  function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ var t = a % b; a = b; b = t; } return a; }
+  function simplify(n,d){ if(d===0) return [0,1]; if(d<0){ n=-n; d=-d; } var g = gcd(n,d); return [Math.round(n/g), Math.round(d/g)]; }
+  function parseFraction(str){ if(str===null || str===undefined) return null; str = String(str).trim(); if(!str) return null; var m = str.match(/^([-+]?\d+)\s+(\d+)\/(\d+)$/); if(m){ var w = parseInt(m[1],10); var n = parseInt(m[2],10); var d = parseInt(m[3],10); var num = Math.abs(w)*d + n; if(w<0) num = -num; return simplify(num,d); } if(/^[-+]?\d+$/.test(str)) return [parseInt(str,10),1]; m = str.match(/^([-+]?\d+)\s*\/\s*(\d+)$/); if(m) return simplify(parseInt(m[1],10), parseInt(m[2],10)); if(/^[-+]?\d*\.\d+$/.test(str)){ var prec = 1000000; var nval = Math.round(parseFloat(str) * prec); return simplify(nval, prec); } return null; }
+  function fromDecimalStr(s, places){ if(s===null || s===undefined) return null; s = String(s).trim(); if(!s) return null; if(!/^[-+]?\d+(\.\d+)?$/.test(s)) return null; places = (typeof places === 'number') ? places : 4; var prec = Math.pow(10, places); var n = Math.round(parseFloat(s) * prec); return simplify(n, prec); }
+  function fracToString(fr){ if(!fr) return ''; var f = simplify(fr[0], fr[1]); var n = f[0], d = f[1]; if(d===1) return String(n); if(Math.abs(n) > d){ var sign = n<0?'-':''; var an = Math.abs(n); var whole = Math.floor(an/d); var rem = an - whole*d; return sign + whole + ' ' + rem + '/' + d; } return n + '/' + d; }
+  function addFrac(a,b){ if(!a || !b) return null; return simplify(a[0]*b[1] + b[0]*a[1], a[1]*b[1]); }
+  function subFrac(a,b){ if(!a || !b) return null; return simplify(a[0]*b[1] - b[0]*a[1], a[1]*b[1]); }
+  function mulFrac(a,b){ if(!a || !b) return null; return simplify(a[0]*b[0], a[1]*b[1]); }
+  function divFrac(a,b){ if(!a || !b) return null; return simplify(a[0]*b[1], a[1]*b[0]); }
+  function toDecimal(fr, prec){ if(!fr) return ''; prec = (typeof prec === 'number') ? prec : 6; return (fr[0] / fr[1]).toFixed(prec); }
+
+  // ----- Tabs -----
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  for(var i=0;i<tabBtns.length;i++){ (function(btn){ btn.addEventListener('click', function(){ for(var j=0;j<tabBtns.length;j++) tabBtns[j].classList.remove('active'); var panels = document.querySelectorAll('.panel'); for(var k=0;k<panels.length;k++) panels[k].classList.remove('active'); btn.classList.add('active'); var id = btn.getAttribute('data-tab'); var el = document.getElementById(id); if(el) el.classList.add('active'); }); })(tabBtns[i]); }
+
+  // ----- Login -----
+var loginEl = document.getElementById('login');
+var loginBtn = document.getElementById('login_btn');
+
+// 🔹 हर refresh पर logout कर दो
+try {
+  sessionStorage.removeItem('app_logged');
+} catch (e) {}
+
+if (loginBtn) {
+  loginBtn.addEventListener('click', function () {
+    var u = document.getElementById('login_user').value.trim();
+    var p = document.getElementById('login_pass').value.trim();
+
+    if (u === 'RockTechnology' && p === 'Manish') {
+      if (loginEl) loginEl.style.display = 'none';
+      try {
+        sessionStorage.setItem('app_logged', '1');
+      } catch (e) {}
+    } else {
+      alert('Invalid Credentials');
+    }
+  });
+}
+
+if (!sessionStorage.getItem('app_logged')) {
+  if (loginEl) loginEl.style.display = 'flex';
+} else {
+  if (loginEl) loginEl.style.display = 'none';
+}
+
+  // ----- TAB 2 handlers -----
+  var tab2Sum = document.getElementById('tab2_sum'); if(tab2Sum){ tab2Sum.addEventListener('click', function(){ var raw = document.getElementById('tab2_input').value.trim(); if(!raw){ alert('कृपया fractions paste करें'); return; } var parts = raw.split(/[\r\n,;]+/).map(function(s){ return s.trim(); }).filter(Boolean); var sum = [0,1]; var invalid = []; for(var i=0;i<parts.length;i++){ var f = parseFraction(parts[i]); if(f) sum = addFrac(sum, f); else invalid.push(parts[i]); } var out = ''; out += '<strong>Sum:</strong> ' + fracToString(sum) + ' (' + toDecimal(sum,6) + ')<br/>'; if(invalid.length) out += '<div class="small">Ignored invalid entries: ' + invalid.join(', ') + '</div>'; document.getElementById('tab2_result').innerHTML = out; }); }
+  var tab2Clear = document.getElementById('tab2_clear'); if(tab2Clear) tab2Clear.addEventListener('click', function(){ document.getElementById('tab2_input').value=''; document.getElementById('tab2_result').innerHTML=''; });
+  var tab2Sample = document.getElementById('tab2_sample'); if(tab2Sample) tab2Sample.addEventListener('click', function(){ document.getElementById('tab2_input').value = '1/4\n1/8\n2/5'; if(tab2Sum) tab2Sum.click(); });
+
+  // ----- TAB 3 handlers -----
+  var tab3Compute = document.getElementById('tab3_compute'); if(tab3Compute) tab3Compute.addEventListener('click', function(){ var base = parseFraction(document.getElementById('tab3_base').value.trim()); if(!base){ alert('कृपया उचित Base fraction दें'); return; } var subs = document.getElementById('tab3_sub').value.trim().split(/[\r\n,;]+/).map(function(s){ return s.trim(); }).filter(Boolean); var cur = base; var invalid = []; for(var i=0;i<subs.length;i++){ var f = parseFraction(subs[i]); if(f) cur = subFrac(cur, f); else invalid.push(subs[i]); } var out = '<strong>Result:</strong> ' + fracToString(cur) + ' (' + toDecimal(cur,6) + ')'; if(invalid.length) out += '<div class="small">Ignored invalid: ' + invalid.join(', ') + '</div>'; document.getElementById('tab3_result').innerHTML = out; });
+  var tab3Clear = document.getElementById('tab3_clear'); if(tab3Clear) tab3Clear.addEventListener('click', function(){ document.getElementById('tab3_base').value=''; document.getElementById('tab3_sub').value=''; document.getElementById('tab3_result').innerHTML=''; });
+
+  // ----- TAB 4 handlers -----
+  var tab4Divide = document.getElementById('tab4_divide'); if(tab4Divide) tab4Divide.addEventListener('click', function(){ var base = parseFraction(document.getElementById('tab4_base').value.trim()); var parts = parseInt(document.getElementById('tab4_parts').value||'0', 10); if(!base || !parts || parts<=0){ alert('कृपया बेस और भागों की संख्या सही दें'); return; } var part = divFrac(base, [parts,1]); document.getElementById('tab4_result').innerHTML = '<strong>Each part:</strong> ' + fracToString(part) + ' (' + toDecimal(part,6) + ')'; });
+  var tab4Clear = document.getElementById('tab4_clear'); if(tab4Clear) tab4Clear.addEventListener('click', function(){ document.getElementById('tab4_base').value=''; document.getElementById('tab4_parts').value=''; document.getElementById('tab4_result').innerHTML=''; });
+
+  // ----- TAB 1 (batwara) -----
+  (function(){
+    var tbody = document.querySelector('#ownersTable tbody');
+    var pasteArea = document.getElementById('pasteArea');
+    var btnPaste = document.getElementById('btnPaste');
+    var btnCompute = document.getElementById('btnCompute');
+    var btnSample = document.getElementById('btnSample');
+    var totalInput = document.getElementById('totalArea');
+    var exportCSVBtn = document.getElementById('exportCSV');
+    var copyBeforeBtn = document.getElementById('copyBefore');
+    var copyAfterBtn = document.getElementById('copyAfter');
+
+    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function createRow(idx, name, fracStr){
+      var tr = document.createElement('tr');
+
+      var tdIdx = document.createElement('td'); tdIdx.className = 'idx'; tdIdx.textContent = idx;
+      var tdChk = document.createElement('td'); var chk = document.createElement('input'); chk.type = 'checkbox'; chk.className = 'sel'; tdChk.appendChild(chk);
+      var tdOwner = document.createElement('td'); tdOwner.className = 'owner'; tdOwner.style.textAlign = 'left'; tdOwner.style.paddingLeft = '8px'; tdOwner.textContent = name;
+      var tdOrigFrac = document.createElement('td'); tdOrigFrac.className = 'orig_frac'; tdOrigFrac.textContent = fracStr;
+      var tdOrigArea = document.createElement('td'); tdOrigArea.className = 'orig_area'; tdOrigArea.textContent = '-';
+      var tdDivided = document.createElement('td'); tdDivided.className = 'divided_area'; var divInp = document.createElement('input'); divInp.type='text'; divInp.className='div_inp'; divInp.disabled = true; tdDivided.appendChild(divInp);
+      var tdRecalc = document.createElement('td'); tdRecalc.className = 'recalc_frac'; tdRecalc.textContent = '-';
+      var tdRemain = document.createElement('td'); tdRemain.className = 'remain_area'; tdRemain.textContent = '-';
+
+      tr.appendChild(tdIdx); tr.appendChild(tdChk); tr.appendChild(tdOwner); tr.appendChild(tdOrigFrac); tr.appendChild(tdOrigArea); tr.appendChild(tdDivided); tr.appendChild(tdRecalc); tr.appendChild(tdRemain);
+      return tr;
+    }
+
+    function handlePaste(){
+      try{
+        var raw = (pasteArea.value || '').trim();
+        if(!raw){ alert('कृपया पहले Excel से data paste करें।'); return; }
+        tbody.innerHTML = '';
+        var lines = raw.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
+        var idx = 1;
+        for(var i=0;i<lines.length;i++){
+          var line = lines[i];
+          var name = ''; var fracStr = '';
+          if(line.indexOf('\t') !== -1){ var p = line.split('\t'); name = p[0].trim(); fracStr = (p[1]||'').trim(); }
+          else if(line.indexOf(',') !== -1){ var p2 = line.split(','); name = p2[0].trim(); fracStr = (p2[1]||'').trim(); }
+          else { var m = line.match(/(.+)\s+(\d+\/\d+)$/); if(m){ name = m[1].trim(); fracStr = m[2].trim(); } else { if(/^\d+\/\d+$/.test(line) || /^\d+(\.\d+)?$/.test(line)){ fracStr = line.trim(); name = 'Owner ' + idx; } else { name = line.trim(); fracStr = ''; } } }
+
+          var tr = createRow(idx, escapeHtml(name), escapeHtml(fracStr));
+          tbody.appendChild(tr);
+          idx++;
+        }
+        recomputeAll();
+      }catch(err){ console.error('handlePaste error', err); alert('Paste में error — Console देखें'); }
+    }
+
+    function handleCompute(){
+      try{
+        var totalStr = (totalInput.value || '').trim();
+        var totalFrac = fromDecimalStr(totalStr, 4);
+        if(!totalFrac){ alert('कृपया सही कुल रकवा डालें, जैसे 0.0200'); return; }
+        var rows = tbody.querySelectorAll('tr');
+        for(var i=0;i<rows.length;i++){
+          var tr = rows[i];
+          var fracStr = tr.querySelector('.orig_frac').textContent.trim();
+          var ownerFrac = parseFraction(fracStr) || [0,1];
+          var areaFrac = mulFrac(totalFrac, ownerFrac);
+          tr.dataset.origNum = String(areaFrac[0]); tr.dataset.origDen = String(areaFrac[1]);
+          var oa = tr.querySelector('.orig_area'); if(oa) oa.textContent = toDecimal(areaFrac,4);
+          var chk = tr.querySelector('.sel'); var divInp = tr.querySelector('.div_inp');
+          if(chk && !chk.checked){ if(divInp){ divInp.value=''; divInp.disabled = true; } tr.dataset.divNum='0'; tr.dataset.divDen='1'; }
+          else { if(divInp && !divInp.value.trim()){ divInp.value = (areaFrac[0]/areaFrac[1]).toFixed(6); tr.dataset.divNum = String(areaFrac[0]); tr.dataset.divDen = String(areaFrac[1]); } if(divInp) divInp.disabled = !chk.checked; }
+        }
+        recomputeAll();
+      }catch(e){ console.error('handleCompute error', e); alert('Compute में error — Console देखें'); }
+    }
+
+    // checkbox change & divided input handled via event delegation
+    tbody.addEventListener('change', function(ev){
+      var target = ev.target || ev.srcElement;
+      if(target && target.classList && target.classList.contains('sel')){
+        var tr = target.closest('tr'); var divInp = tr.querySelector('.div_inp');
+        if(target.checked){ var on = parseInt(tr.dataset.origNum||'0',10); var od = parseInt(tr.dataset.origDen||'1',10); if(on===0){ if(divInp) divInp.value=''; } else { if(divInp) divInp.value = (on/od).toFixed(6); } if(divInp) divInp.disabled = false; tr.dataset.divNum = String(on); tr.dataset.divDen = String(od);
+        } else { if(divInp) divInp.value=''; if(divInp) divInp.disabled = true; tr.dataset.divNum='0'; tr.dataset.divDen='1'; }
+        recomputeAll();
+      }
+    });
+
+    tbody.addEventListener('input', function(ev){
+      var target = ev.target || ev.srcElement;
+      if(target && target.classList && target.classList.contains('div_inp')){
+        var tr = target.closest('tr'); var v = (target.value||'').trim(); var totalStr = (totalInput.value||'').trim(); var totalFrac = fromDecimalStr(totalStr,4) || [0,1]; var absFrac = [0,1];
+        if(v===''){ absFrac = [0,1]; }
+        else if(v.indexOf('/') !== -1){ var f = parseFraction(v); if(f) absFrac = mulFrac(totalFrac, f); }
+        else if(!isNaN(parseFloat(v))){ var dec = fromDecimalStr(v,6); if(dec) absFrac = dec; }
+        else { absFrac = [0,1]; }
+        tr.dataset.divNum = String(absFrac[0]); tr.dataset.divDen = String(absFrac[1]); recomputeAll();
+      }
+    });
+
+    function recomputeAll(){
+      var totalStr = (totalInput.value||'').trim(); var totalFrac = fromDecimalStr(totalStr,4) || [0,1];
+      var rows = tbody.querySelectorAll('tr'); var sumDiv = [0,1];
+      for(var i=0;i<rows.length;i++){
+        var tr = rows[i]; var dnum = parseInt(tr.dataset.divNum||'0',10); var dden = parseInt(tr.dataset.divDen||'1',10); sumDiv = addFrac(sumDiv, [dnum, dden]); }
+      var remainTotal = subFrac(totalFrac, sumDiv);
+      var sumDivEl = document.getElementById('sumDivided'); if(sumDivEl) sumDivEl.value = toDecimal(sumDiv,4);
+      var remainEl = document.getElementById('remainingArea'); if(remainEl) remainEl.value = toDecimal(remainTotal,4);
+
+      var remSum = [0,1];
+      for(var i=0;i<rows.length;i++){
+        var tr = rows[i]; var on = parseInt(tr.dataset.origNum||'0',10); var od = parseInt(tr.dataset.origDen||'1',10); var dn = parseInt(tr.dataset.divNum||'0',10); var dd = parseInt(tr.dataset.divDen||'1',10); var rem = subFrac([on,od], [dn,dd]); tr.dataset.remNum = String(rem[0]); tr.dataset.remDen = String(rem[1]); var ra = tr.querySelector('.remain_area'); if(ra) ra.textContent = (rem[0]===0)? '-' : toDecimal(rem,4); remSum = addFrac(remSum, rem); }
+
+      for(var i=0;i<rows.length;i++){
+        var tr = rows[i]; var rnum = parseInt(tr.dataset.remNum||'0',10); var rden = parseInt(tr.dataset.remDen||'1',10); var recCell = tr.querySelector('.recalc_frac'); if(!recCell) continue; if(remSum[0]===0 || rnum===0) recCell.textContent='-'; else { var rec = divFrac([rnum,rden], remSum); recCell.textContent = fracToString(rec); } }
+
+      var tfootTotal = document.getElementById('tfoot_total'); if(tfootTotal) tfootTotal.textContent = toDecimal(totalFrac,4);
+      var tfootDiv = document.getElementById('tfoot_divided'); if(tfootDiv) tfootDiv.textContent = toDecimal(sumDiv,4);
+      var tfootRemain = document.getElementById('tfoot_remain'); if(tfootRemain) tfootRemain.textContent = toDecimal(remainTotal,4);
+
+      updateCombinedBefore(); updateCombinedAfter();
+    }
+
+    function updateCombinedBefore(){ var rows = tbody.querySelectorAll('tr'); var arr = []; for(var i=0;i<rows.length;i++){ var tr = rows[i]; var name = tr.querySelector('.owner').textContent.trim(); var f = tr.querySelector('.orig_frac').textContent.trim() || '-'; arr.push(name + ' ' + f); } var cb = document.getElementById('combinedBefore'); if(cb) cb.value = arr.join(', '); }
+    function updateCombinedAfter(){ var rows = tbody.querySelectorAll('tr'); var arr = []; for(var i=0;i<rows.length;i++){ var tr = rows[i]; var name = tr.querySelector('.owner').textContent.trim(); var rec = tr.querySelector('.recalc_frac').textContent.trim(); if(rec && rec !== '-') arr.push(name + ' ' + rec); } var ca = document.getElementById('combinedAfter'); if(ca) ca.value = arr.join(', '); }
+
+    if(exportCSVBtn){ exportCSVBtn.addEventListener('click', function(){ var rows = tbody.querySelectorAll('tr'); if(rows.length === 0){ alert('कोई डेटा नहीं'); return; } var csv = ['No,Selected,Name,OrigFraction,OrigArea,DividedArea,RecalcFraction,RemainArea']; for(var i=0;i<rows.length;i++){ var tr = rows[i]; var no = tr.querySelector('.idx')? tr.querySelector('.idx').textContent.trim() : ''; var sel = tr.querySelector('.sel')? (tr.querySelector('.sel').checked ? '1' : '0') : '0'; var name = tr.querySelector('.owner')? tr.querySelector('.owner').textContent.trim().replace(/"/g,'""') : ''; var of = tr.querySelector('.orig_frac')? tr.querySelector('.orig_frac').textContent.trim() : ''; var oa = tr.querySelector('.orig_area')? tr.querySelector('.orig_area').textContent.trim() : ''; var da = tr.querySelector('.div_inp')? tr.querySelector('.div_inp').value.trim() : ''; var rf = tr.querySelector('.recalc_frac')? tr.querySelector('.recalc_frac').textContent.trim() : ''; var ra = tr.querySelector('.remain_area')? tr.querySelector('.remain_area').textContent.trim() : ''; csv.push([no,sel,'"'+name+'"',of,oa,da,rf,ra].join(',')); } var blob = new Blob([csv.join('\n')], { type: 'text/csv' }); var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = 'batwara_table.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(url); }, 1000); }); }
+
+    if(copyBeforeBtn){ copyBeforeBtn.addEventListener('click', function(){ var txt = document.getElementById('combinedBefore')? document.getElementById('combinedBefore').value : ''; navigator.clipboard.writeText(txt).then(function(){ alert('Copied Before Data'); }).catch(function(){ alert('Copy failed'); }); }); }
+    if(copyAfterBtn){ copyAfterBtn.addEventListener('click', function(){ var txt = document.getElementById('combinedAfter')? document.getElementById('combinedAfter').value : ''; navigator.clipboard.writeText(txt).then(function(){ alert('Copied After Data'); }).catch(function(){ alert('Copy failed'); }); }); }
+
+    if(btnPaste) btnPaste.addEventListener('click', handlePaste);
+    if(btnCompute) btnCompute.addEventListener('click', handleCompute);
+    if(btnSample){ btnSample.addEventListener('click', function(){ pasteArea.value = 'राम पिता राधेश्याम\t1/2\nश्याम\t1/4\nगीता\t1/4'; handlePaste(); document.getElementById('totalArea').value = '0.0200'; handleCompute(); }); }
+
+    // initial
+    recomputeAll();
+  })();
+
+});
+</script>
+</body>
+</html>
