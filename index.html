@@ -3,50 +3,167 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Batwara & Fraction Tool — HTML App</title>
+<title>Batwara&Fraction Tool (V.0.02)</title>
+<!-- NOTE: fonts used by original files -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--teal:#0ea5a0;--teal-dark:#0b8b80;--muted:#6b7280;--bg:#2f3f48}
-  body{margin:0;font-family: "Segoe UI", Roboto, Arial, sans-serif;background:var(--bg);color:#0f172a}
-  .container{max-width:1100px;margin:28px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(2,6,23,0.35)}
-  header{background:linear-gradient(180deg,#20c6b0,#138f82);padding:18px 24px;color:#07363a;font-weight:700;font-size:28px}
-  main{padding:18px}
-  .tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-  .tab-btn{padding:10px 16px;border-radius:6px;border:2px solid rgba(10,70,70,0.08);background:#f0f6f5;cursor:pointer;font-weight:700}
-  .tab-btn.active{background:#e6fffb;border-color:var(--teal);box-shadow:inset 0 -4px 0 rgba(0,0,0,0.02)}
-  .panel{display:none;padding:12px 6px}
-  .panel.active{display:block}
-  textarea, input[type="text"], input[type="number"], input[type="password"]{width:100%;padding:10px;border-radius:6px;border:1px solid #d1d5db;font-size:15px;box-sizing:border-box}
-  .row{display:flex;gap:12px;align-items:center;margin-bottom:10px}
-  .col{flex:1}
-  .btn{background:linear-gradient(180deg,#19b7a3,#0b8b80);color:white;padding:10px 16px;border-radius:24px;border:0;cursor:pointer;font-weight:700}
-  .btn.ghost{background:#eef6f5;color:#0b8b80;border:1px solid #bfe9df}
-  .result-box{background:#f3f4f6;padding:14px;border-radius:8px;min-height:48px;border:1px solid #e6e9ea}
-  table{width:100%;border-collapse:collapse;margin-top:8px}
-  th,td{padding:8px;border:1px solid #e6e9ea;text-align:left}
-  .small{font-size:13px;color:var(--muted)}
-  footer{padding:10px;text-align:center;background:#e6fffb;color:#044; font-size:13px}
-  .login-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#6b7280}
-  .login-card{width:720px;background:#1f3a44;color:white;padding:28px;border-radius:10px;display:flex;gap:20px;align-items:center}
-  .login-left{flex:1}
-  .login-right{flex:1;background:linear-gradient(135deg,#06b6a4,#089185);border-radius:8px;padding:20px}
-  label{display:block;margin-bottom:6px;font-weight:700;color:#0b8b80}
-  .note{font-size:13px;color:#083;display:block;margin-top:8px}
-  @media(max-width:800px){.login-card{width:92%;flex-direction:column} .row{flex-direction:column}}
+/* ===========================
+   Part A: styles from 4tabs.txt (kept mostly as-is)
+   =========================== */
+:root{--teal:#0ea5a0;--teal-dark:#0b8b80;--muted:#6b7280;--bg:#2f3f48}
+body{margin:0;font-family: "Segoe UI", Roboto, Arial, sans-serif;background:var(--bg);color:#0f172a}
+.container{max-width:1100px;margin:28px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(2,6,23,0.35)}
+header{background:linear-gradient(180deg,#20c6b0,#138f82);padding:18px 24px;color:#07363a;font-weight:700;font-size:28px}
+main{padding:18px}
+.tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tab-btn{padding:10px 16px;border-radius:6px;border:2px solid rgba(10,70,70,0.08);background:#f0f6f5;cursor:pointer;font-weight:700}
+.tab-btn.active{background:#e6fffb;border-color:var(--teal);box-shadow:inset 0 -4px 0 rgba(0,0,0,0.02)}
+.panel{display:none;padding:12px 6px}
+.panel.active{display:block}
+textarea, input[type="text"], input[type="number"], input[type="password"]{width:100%;padding:10px;border-radius:6px;border:1px solid #d1d5db;font-size:15px;box-sizing:border-box}
+.row{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.col{flex:1}
+.btn{background:linear-gradient(180deg,#19b7a3,#0b8b80);color:white;padding:10px 16px;border-radius:24px;border:0;cursor:pointer;font-weight:700}
+.btn.ghost{background:#eef6f5;color:#0b8b80;border:1px solid #bfe9df}
+.result-box{background:#f3f4f6;padding:14px;border-radius:8px;min-height:48px;border:1px solid #e6e9ea}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th,td{padding:8px;border:1px solid #e6e9ea;text-align:left}
+.small{font-size:13px;color:var(--muted)}
+footer{padding:10px;text-align:center;background:#e6fffb;color:#044; font-size:13px}
+
+/* login overlay as in 4tabs */
+.login-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#6b7280}
+.login-card{width:720px;background:#1f3a44;color:white;padding:28px;border-radius:10px;display:flex;gap:20px;align-items:center}
+.login-left{flex:1}
+.login-right{flex:1;background:linear-gradient(135deg,#06b6a4,#089185);border-radius:8px;padding:20px}
+label{display:block;margin-bottom:6px;font-weight:700;color:#0b8b80}
+.note{font-size:13px;color:#083;display:block;margin-top:8px}
+@media(max-width:800px){.login-card{width:92%;flex-direction:column} .row{flex-direction:column}}
+
+/* small helper to visually isolate appended panels from the main BATWARA layout if needed */
+.scoped-frame { padding:8px; background:transparent; border-radius:6px; }
 </style>
+
+<!-- ===========================
+     Part B: Scoped styles from 2tabs.txt
+     We keep them scoped under #khasraPanel and #ownerPanel to avoid CSS collision.
+     (Preserves original look/function inside those panels.)
+     =========================== -->
+<style>
+/* Scoped copy of the 2tabs stylesheet but prefixed so it only affects the two inserted panels */
+#khasraPanel, #ownerPanel {
+  --bg2:#25363f;
+  --card:#eef3f4;
+  --accent:#1ea69a;
+  --accent-dark:#0b7f73;
+  --muted2:#1f3b42;
+  font-family: "Poppins", Arial, sans-serif;
+  color: #fff;
+}
+#khasraPanel .k-stage, #ownerPanel .k-stage {
+  background: transparent;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* Scoped elements inside the khasra/owner panels */
+#khasraPanel .tabs, #ownerPanel .tabs {
+  width:100%;
+  display:flex;
+  gap:12px;
+  margin-bottom:12px;
+}
+#khasraPanel .tab-btn, #ownerPanel .tab-btn {
+  flex:1;
+  background:#1f2f36;
+  border:2px solid rgba(255,255,255,0.02);
+  color:#bfeee3;
+  padding:12px 18px;
+  text-align:center;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  letter-spacing:0.4px;
+}
+#khasraPanel .tab-btn.active, #ownerPanel .tab-btn.active {
+  background: linear-gradient(180deg,#1fa18f,#0f6b61);
+  color:#fff;
+  box-shadow:0 6px 18px rgba(0,0,0,0.35);
+}
+
+/* cards inside scoped area */
+#khasraPanel .card, #ownerPanel .card {
+  background:var(--card);
+  border:3px solid #2aa89b;
+  padding:18px;
+  color:#223033;
+  border-radius:6px;
+}
+#khasraPanel textarea.input, #khasraPanel textarea.output,
+#ownerPanel textarea.input, #ownerPanel textarea.output {
+  width:100%;
+  height:220px;
+  resize:none;
+  border:none;
+  outline:none;
+  background:transparent;
+  color:inherit;
+  font-size:14px;
+  line-height:1.6;
+  white-space:pre-wrap;
+}
+#khasraPanel .transfer-btn, #ownerPanel .transfer-btn {
+  background: linear-gradient(180deg,#2bbfa6,#177f72);
+  border-radius:40px;
+  padding:12px 28px;
+  color:#fff;
+  font-weight:800;
+  font-size:16px;
+  letter-spacing:1px;
+  border:0;
+  cursor:pointer;
+}
+#khasraPanel .copy-pill, #ownerPanel .copy-pill {
+  background: linear-gradient(180deg,#2fbf9f,#127a66);
+  color:#fff;
+  border-radius:26px;
+  padding:8px 14px;
+  font-weight:700;
+  cursor:pointer;
+  border:0;
+}
+#khasraPanel .caption, #ownerPanel .caption { text-align:center; color:#19b39d; margin-top:8px; font-size:13px; }
+#khasraPanel .toast, #ownerPanel .toast {
+  display:none; position:relative; padding:6px 10px; border-radius:10px; background:#2ecc71; color:#fff; font-weight:600;
+}
+@media (max-width:980px){
+  #khasraPanel .k-stage, #ownerPanel .k-stage { display:block; }
+}
+</style>
+
 </head>
 <body>
 <div class="container" id="app">
   <header>Batwara & Fraction Tool — HTML App</header>
   <main>
-    <div class="tabs" role="tablist">
+    <!-- Top-level tabs: original 4 from 4tabs + 2 added (खसरा, भूस्वामी) -->
+    <div class="tabs" role="tablist" id="topTabs">
       <button class="tab-btn active" data-tab="tab1">बटवारा करें</button>
       <button class="tab-btn" data-tab="tab2">भिन्‍न जोड़ें</button>
       <button class="tab-btn" data-tab="tab3">भिन्‍न घटायें</button>
       <button class="tab-btn" data-tab="tab4">भिन्‍न विभाजित करें</button>
+
+      <!-- Added 2 tabs (from 2tabs.txt): Khasra & Owner -->
+      <button class="tab-btn" data-tab="khasra">खसरा व रकवा संयुक्‍त</button>
+      <button class="tab-btn" data-tab="owner">भूस्वामी व हिस्सा संयुक्‍त</button>
     </div>
 
+    <!-- =======================
+         Panels from 4tabs.txt (original 4)
+         ======================= -->
     <!-- TAB 1 -->
-    <section id="tab1" class="panel active" role="tabpanel" aria-labelledby="tab1">
+    <section id="tab1" class="panel active" role="tabpanel" aria-labelledby="tab1"> 
+      <!-- (Exact content from 4tabs.txt Tab1) -->
       <div class="card">
         <div class="top">
           <div class="field">
@@ -163,14 +280,63 @@
       <div id="tab4_result" class="result-box"></div>
     </section>
 
+    <!-- =======================
+         Panels from 2tabs.txt (KHASRA and OWNER) — inserted as separate panels
+         (keeps their layout & JS behavior, styles are scoped above)
+         ======================= -->
+    <section id="khasra" class="panel" role="tabpanel" aria-labelledby="khasra">
+      <div id="khasraPanel" class="scoped-frame">
+        <!-- Khasra UI copied/adapted from 2tabs.txt (left & right cards + transfer) -->
+        <div class="k-stage" style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
+          <div class="card" style="flex:1;min-width:280px;">
+            <textarea id="inputKhasra" class="input" placeholder="Paste data here from excel"></textarea>
+            <div class="caption">Paste data here from excel</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div style="height:18px"></div>
+            <button class="transfer-btn" id="transferBtn">TRANSFER</button>
+          </div>
+
+          <div class="card" style="flex:1;min-width:280px;position:relative;">
+            <textarea id="outputKhasra" class="output" placeholder="Get Result here"></textarea>
+            <button class="copy-pill" id="copyKhasra">Copy Data</button>
+            <div class="caption">Get Result here</div>
+            <div class="toast" id="toastK">Copied ✅</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="owner" class="panel" role="tabpanel" aria-labelledby="owner">
+      <div id="ownerPanel" class="scoped-frame">
+        <!-- Owner UI copied/adapted from 2tabs.txt -->
+        <div class="k-stage" style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
+          <div class="card" style="flex:1;min-width:280px;">
+            <textarea id="inputOwner" class="input" placeholder="Paste data here from excel"></textarea>
+            <div class="caption">Paste data here from excel</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div style="height:18px"></div>
+            <button class="transfer-btn" id="transferOwnerBtn">TRANSFER</button>
+          </div>
+
+          <div class="card" style="flex:1;min-width:280px;position:relative;">
+            <textarea id="outputOwner" class="output" placeholder="Get Result here"></textarea>
+            <button class="copy-pill" id="copyOwner">Copy Data</button>
+            <div class="caption">Get Result here</div>
+            <div class="toast" id="toastO">Copied ✅</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
   <footer>Developed with care by Manish (7869731689) · Local (client-side) HTML tool · Data stays in your browser only</footer>
 </div>
 
-<!-- Login overlay -->
-
-
-
+<!-- Login overlay from 4tabs (kept intact) -->
 <div id="login" class="login-overlay" role="dialog" aria-modal="true">
   <div class="login-card">
     <div class="login-left">
@@ -192,9 +358,36 @@
   </div>
 </div>
 
+<!-- ===========================
+     JavaScript: merges behavior from both files.
+     - Top-level tab switching (from 4tabs) retained.
+     - All 4 tab scripts from 4tabs inserted unchanged.
+     - Khasra/Owner scripts (from 2tabs) inserted in scoped form.
+     - IDs kept unchanged to preserve behavior.
+     =========================== -->
 <script>
-// All JS runs after DOM ready
-document.addEventListener('DOMContentLoaded', function(){
+/* ---------------------
+   Top-level tabs (4tabs base behavior)
+   --------------------- */
+(function(){
+  var tabBtns = document.querySelectorAll('#topTabs .tab-btn');
+  for(var i=0;i<tabBtns.length;i++){ (function(btn){ btn.addEventListener('click', function(){
+    for(var j=0;j<tabBtns.length;j++) tabBtns[j].classList.remove('active');
+    var panels = document.querySelectorAll('.panel');
+    for(var k=0;k<panels.length;k++) panels[k].classList.remove('active');
+    btn.classList.add('active');
+    var id = btn.getAttribute('data-tab');
+    var el = document.getElementById(id);
+    if(el) el.classList.add('active');
+  }); })(tabBtns[i]); }
+})();
+
+/* ---------------------
+   Inserted JS from 4tabs.txt (fractions & Batwara functionality)
+   Unchanged logic — copied from original file.
+   --------------------- */
+/* Helpers and fraction functions */
+(function(){
   // ----- Helpers -----
   function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ var t = a % b; a = b; b = t; } return a; }
   function simplify(n,d){ if(d===0) return [0,1]; if(d<0){ n=-n; d=-d; } var g = gcd(n,d); return [Math.round(n/g), Math.round(d/g)]; }
@@ -207,55 +400,70 @@ document.addEventListener('DOMContentLoaded', function(){
   function divFrac(a,b){ if(!a || !b) return null; return simplify(a[0]*b[1], a[1]*b[0]); }
   function toDecimal(fr, prec){ if(!fr) return ''; prec = (typeof prec === 'number') ? prec : 6; return (fr[0] / fr[1]).toFixed(prec); }
 
-  // ----- Tabs -----
-  var tabBtns = document.querySelectorAll('.tab-btn');
-  for(var i=0;i<tabBtns.length;i++){ (function(btn){ btn.addEventListener('click', function(){ for(var j=0;j<tabBtns.length;j++) tabBtns[j].classList.remove('active'); var panels = document.querySelectorAll('.panel'); for(var k=0;k<panels.length;k++) panels[k].classList.remove('active'); btn.classList.add('active'); var id = btn.getAttribute('data-tab'); var el = document.getElementById(id); if(el) el.classList.add('active'); }); })(tabBtns[i]); }
+  // ----- Tabs ----- (already handled by top-level but keep inner logic for original 4tabs buttons)
+  // (original file had click handlers for its own .tab-btn; our top-level handler controls panels)
 
-  // ----- Login -----
-var loginEl = document.getElementById('login');
-var loginBtn = document.getElementById('login_btn');
+  // ----- Login (from 4tabs) -----
+  var loginEl = document.getElementById('login');
+  var loginBtn = document.getElementById('login_btn');
 
-// 🔹 हर refresh पर logout कर दो
-try {
-  sessionStorage.removeItem('app_logged');
-} catch (e) {}
+  try { sessionStorage.removeItem('app_logged'); } catch (e) {}
 
-if (loginBtn) {
-  loginBtn.addEventListener('click', function () {
-    var u = document.getElementById('login_user').value.trim();
-    var p = document.getElementById('login_pass').value.trim();
+  if (loginBtn) {
+    loginBtn.addEventListener('click', function () {
+      var u = document.getElementById('login_user').value.trim();
+      var p = document.getElementById('login_pass').value.trim();
+      if (u === 'RockTechnology' && p === 'Manish') {
+        if (loginEl) loginEl.style.display = 'none';
+        try { sessionStorage.setItem('app_logged', '1'); } catch (e) {}
+      } else {
+        alert('Invalid Credentials');
+      }
+    });
+  }
 
-    if (u === 'RockTechnology' && p === 'Manish') {
-      if (loginEl) loginEl.style.display = 'none';
-      try {
-        sessionStorage.setItem('app_logged', '1');
-      } catch (e) {}
-    } else {
-      alert('Invalid Credentials');
-    }
-  });
-}
+  if (!sessionStorage.getItem('app_logged')) {
+    if (loginEl) loginEl.style.display = 'flex';
+  } else {
+    if (loginEl) loginEl.style.display = 'none';
+  }
 
-if (!sessionStorage.getItem('app_logged')) {
-  if (loginEl) loginEl.style.display = 'flex';
-} else {
-  if (loginEl) loginEl.style.display = 'none';
-}
-
-  // ----- TAB 2 handlers -----
-  var tab2Sum = document.getElementById('tab2_sum'); if(tab2Sum){ tab2Sum.addEventListener('click', function(){ var raw = document.getElementById('tab2_input').value.trim(); if(!raw){ alert('कृपया fractions paste करें'); return; } var parts = raw.split(/[\r\n,;]+/).map(function(s){ return s.trim(); }).filter(Boolean); var sum = [0,1]; var invalid = []; for(var i=0;i<parts.length;i++){ var f = parseFraction(parts[i]); if(f) sum = addFrac(sum, f); else invalid.push(parts[i]); } var out = ''; out += '<strong>Sum:</strong> ' + fracToString(sum) + ' (' + toDecimal(sum,6) + ')<br/>'; if(invalid.length) out += '<div class="small">Ignored invalid entries: ' + invalid.join(', ') + '</div>'; document.getElementById('tab2_result').innerHTML = out; }); }
+  // ----- TAB 2 (sum fractions) handlers -----
+  var tab2Sum = document.getElementById('tab2_sum'); if(tab2Sum){ tab2Sum.addEventListener('click', function(){
+    var raw = document.getElementById('tab2_input').value.trim(); if(!raw){ alert('कृपया fractions paste करें'); return; }
+    var parts = raw.split(/[\r\n,;]+/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var sum = [0,1]; var invalid = [];
+    for(var i=0;i<parts.length;i++){ var f = parseFraction(parts[i]); if(f) sum = addFrac(sum, f); else invalid.push(parts[i]); }
+    var out = ''; out += '<strong>Sum:</strong> ' + fracToString(sum) + ' (' + toDecimal(sum,6) + ')<br/>';
+    if(invalid.length) out += '<div class="small">Ignored invalid entries: ' + invalid.join(', ') + '</div>';
+    document.getElementById('tab2_result').innerHTML = out;
+  }); }
   var tab2Clear = document.getElementById('tab2_clear'); if(tab2Clear) tab2Clear.addEventListener('click', function(){ document.getElementById('tab2_input').value=''; document.getElementById('tab2_result').innerHTML=''; });
   var tab2Sample = document.getElementById('tab2_sample'); if(tab2Sample) tab2Sample.addEventListener('click', function(){ document.getElementById('tab2_input').value = '1/4\n1/8\n2/5'; if(tab2Sum) tab2Sum.click(); });
 
   // ----- TAB 3 handlers -----
-  var tab3Compute = document.getElementById('tab3_compute'); if(tab3Compute) tab3Compute.addEventListener('click', function(){ var base = parseFraction(document.getElementById('tab3_base').value.trim()); if(!base){ alert('कृपया उचित Base fraction दें'); return; } var subs = document.getElementById('tab3_sub').value.trim().split(/[\r\n,;]+/).map(function(s){ return s.trim(); }).filter(Boolean); var cur = base; var invalid = []; for(var i=0;i<subs.length;i++){ var f = parseFraction(subs[i]); if(f) cur = subFrac(cur, f); else invalid.push(subs[i]); } var out = '<strong>Result:</strong> ' + fracToString(cur) + ' (' + toDecimal(cur,6) + ')'; if(invalid.length) out += '<div class="small">Ignored invalid: ' + invalid.join(', ') + '</div>'; document.getElementById('tab3_result').innerHTML = out; });
+  var tab3Compute = document.getElementById('tab3_compute'); if(tab3Compute) tab3Compute.addEventListener('click', function(){
+    var base = parseFraction(document.getElementById('tab3_base').value.trim()); if(!base){ alert('कृपया उचित Base fraction दें'); return; }
+    var subs = document.getElementById('tab3_sub').value.trim().split(/[\r\n,;]+/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var cur = base; var invalid = [];
+    for(var i=0;i<subs.length;i++){ var f = parseFraction(subs[i]); if(f) cur = subFrac(cur, f); else invalid.push(subs[i]); }
+    var out = '<strong>Result:</strong> ' + fracToString(cur) + ' (' + toDecimal(cur,6) + ')';
+    if(invalid.length) out += '<div class="small">Ignored invalid: ' + invalid.join(', ') + '</div>';
+    document.getElementById('tab3_result').innerHTML = out;
+  });
   var tab3Clear = document.getElementById('tab3_clear'); if(tab3Clear) tab3Clear.addEventListener('click', function(){ document.getElementById('tab3_base').value=''; document.getElementById('tab3_sub').value=''; document.getElementById('tab3_result').innerHTML=''; });
 
   // ----- TAB 4 handlers -----
-  var tab4Divide = document.getElementById('tab4_divide'); if(tab4Divide) tab4Divide.addEventListener('click', function(){ var base = parseFraction(document.getElementById('tab4_base').value.trim()); var parts = parseInt(document.getElementById('tab4_parts').value||'0', 10); if(!base || !parts || parts<=0){ alert('कृपया बेस और भागों की संख्या सही दें'); return; } var part = divFrac(base, [parts,1]); document.getElementById('tab4_result').innerHTML = '<strong>Each part:</strong> ' + fracToString(part) + ' (' + toDecimal(part,6) + ')'; });
+  var tab4Divide = document.getElementById('tab4_divide'); if(tab4Divide) tab4Divide.addEventListener('click', function(){
+    var base = parseFraction(document.getElementById('tab4_base').value.trim());
+    var parts = parseInt(document.getElementById('tab4_parts').value||'0', 10);
+    if(!base || !parts || parts<=0){ alert('कृपया बेस और भागों की संख्या सही दें'); return; }
+    var part = divFrac(base, [parts,1]);
+    document.getElementById('tab4_result').innerHTML = '<strong>Each part:</strong> ' + fracToString(part) + ' (' + toDecimal(part,6) + ')';
+  });
   var tab4Clear = document.getElementById('tab4_clear'); if(tab4Clear) tab4Clear.addEventListener('click', function(){ document.getElementById('tab4_base').value=''; document.getElementById('tab4_parts').value=''; document.getElementById('tab4_result').innerHTML=''; });
 
-  // ----- TAB 1 (batwara) -----
+  // ----- TAB 1 (batwara) ----- (copied almost verbatim)
   (function(){
     var tbody = document.querySelector('#ownersTable tbody');
     var pasteArea = document.getElementById('pasteArea');
@@ -390,7 +598,155 @@ if (!sessionStorage.getItem('app_logged')) {
     recomputeAll();
   })();
 
+})();
+</script>
+
+<!-- ===========================
+     JS from 2tabs.txt (Khasra parsing, Owner parsing, copy/toast)
+     Scoped to operate on the elements we added:
+     - inputKhasra, outputKhasra, transferBtn, copyKhasra
+     - inputOwner, outputOwner, transferOwnerBtn, copyOwner
+     These functions are essentially identical to the originals.
+     =========================== -->
+<script>
+/* Small utility helpers (scoped functions use same names but operate on specific IDs) */
+function safeTrim(s){ return s ? s.toString().trim() : ''; }
+function showToastScoped(id){
+  var t = document.getElementById(id);
+  if(!t) return;
+  t.style.display='inline-block';
+  t.style.opacity='0';
+  setTimeout(function(){ t.style.opacity='1'; }, 10);
+  setTimeout(function(){ t.style.opacity='0'; setTimeout(function(){ t.style.display='none'; },300); }, 1200);
+}
+
+/* Khasra parsing (copied logic) */
+function doTransferKhasra(){
+  const raw = document.getElementById('inputKhasra').value || '';
+  const lines = raw.split(/\r?\n/).map(l=>safeTrim(l)).filter((_,i)=>true);
+  const entries = [];
+  let total = 0;
+  let count = 0;
+
+  for(let i=0;i<lines.length;i++){
+    const line = lines[i];
+    if(!line) continue;
+    const isDecimal = /^\d+\.\d+/.test(line);
+    const startsWithDigit = /^[0-9]/.test(line);
+    if(startsWithDigit && !isDecimal){
+      let khasra = line.replace(/\(.*?\)/g,'').trim();
+      let area = null;
+      for(let j=i+1;j<=i+4 && j<lines.length;j++){
+        const candidate = lines[j];
+        if(!candidate) continue;
+        const m = candidate.match(/([\d]+\.\d+)\s*(हेक्टेयर|हे\.|हे|hectare)?/i);
+        if(m){
+          area = parseFloat(m[1]);
+          break;
+        }
+      }
+      if(area !== null && !isNaN(area) && area > 0){
+        entries.push(`${khasra} रकवा ${area.toFixed(4)}हे.`);
+        total += area;
+        count++;
+      }
+    }
+  }
+
+  let out = entries.join(', ');
+  if(!out) out = '';
+  if(count>0){
+    out += "\n\nकिता " + count + " कुल रकवा " + total.toFixed(4) + "हे."
+  }
+  document.getElementById('outputKhasra').value = out;
+}
+
+/* Owner parsing (copied logic) */
+function doTransferOwnerScoped(){
+  const raw = document.getElementById('inputOwner').value || '';
+  if(!raw.trim()){
+    document.getElementById('outputOwner').value = '';
+    return;
+  }
+
+  let blocks = raw.split(/\n\s*\n/).map(b => b.trim()).filter(b => b !== '');
+  if(blocks.length === 1){
+    const allLines = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '');
+    if(allLines.length >= 4 && allLines.length % 4 === 0){
+      blocks = [];
+      for(let i = 0; i < allLines.length; i += 4){
+        blocks.push(allLines.slice(i, i+4).join('\n'));
+      }
+    }
+  }
+
+  const owners = [];
+  for(const block of blocks){
+    const lines = block.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '');
+    if(lines.length === 0) continue;
+    const name = lines[0].replace(/\(.*?\)/g,'').trim();
+    let frac = '';
+    if(lines.length >= 3){
+      const m3 = lines[2].match(/([0-9]+\s*\/\s*[0-9]+)/);
+      if(m3) frac = m3[1].replace(/\s+/g,'');
+    }
+    if(!frac){
+      for(const ln of lines){
+        const m = ln.match(/([0-9]+\s*\/\s*[0-9]+)/);
+        if(m){ frac = m[1].replace(/\s+/g,''); break; }
+      }
+    }
+    if(name && frac){
+      owners.push(name + ' ' + frac);
+    }
+  }
+
+  document.getElementById('outputOwner').value = owners.join(', ');
+}
+
+/* Copy helpers for both panels */
+function copyTextScoped(id){
+  const txt = document.getElementById(id).value || '';
+  if(!txt) return;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){
+      if(id==='outputKhasra') showToastScoped('toastK'); else showToastScoped('toastO');
+    }).catch(function(){ fallbackCopyScoped(txt, id); });
+  } else {
+    fallbackCopyScoped(txt, id);
+  }
+}
+function fallbackCopyScoped(text, id){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    if(id==='outputKhasra') showToastScoped('toastK'); else showToastScoped('toastO');
+  } catch(e){
+    alert('Copy failed');
+  }
+  document.body.removeChild(ta);
+}
+
+/* Wire up the scoped UI elements on DOM load */
+window.addEventListener('load', function(){
+  // Khasra panel
+  var tb = document.getElementById('transferBtn');
+  if(tb) tb.addEventListener('click', doTransferKhasra);
+  var cpK = document.getElementById('copyKhasra');
+  if(cpK) cpK.addEventListener('click', function(){ copyTextScoped('outputKhasra'); });
+
+  // Owner panel
+  var tbO = document.getElementById('transferOwnerBtn');
+  if(tbO) tbO.addEventListener('click', doTransferOwnerScoped);
+  var cpO = document.getElementById('copyOwner');
+  if(cpO) cpO.addEventListener('click', function(){ copyTextScoped('outputOwner'); });
+
+  // ensure initial default states similar to original 2tabs (no auto-run)
 });
 </script>
+
 </body>
 </html>
