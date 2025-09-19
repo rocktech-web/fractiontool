@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Batwara&Fraction Tool (V.0.02)</title>
+<title>Batwara & Fraction Tool</title>
 <!-- NOTE: fonts used by original files -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -156,7 +156,9 @@ label{display:block;margin-bottom:6px;font-weight:700;color:#0b8b80}
       <!-- Added 2 tabs (from 2tabs.txt): Khasra & Owner -->
       <button class="tab-btn" data-tab="khasra">खसरा व रकवा संयुक्‍त</button>
       <button class="tab-btn" data-tab="owner">भूस्वामी व हिस्सा संयुक्‍त</button>
-    </div>
+    
+  <button class="tab-btn" data-tab="tab7">Combined Extractor</button>
+</div>
 
     <!-- =======================
          Panels from 4tabs.txt (original 4)
@@ -289,8 +291,8 @@ label{display:block;margin-bottom:6px;font-weight:700;color:#0b8b80}
         <!-- Khasra UI copied/adapted from 2tabs.txt (left & right cards + transfer) -->
         <div class="k-stage" style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
           <div class="card" style="flex:1;min-width:280px;">
-            <textarea id="inputKhasra" class="input" placeholder="Paste data here"></textarea>
-            <div class="caption">Paste data here</div>
+            <textarea id="inputKhasra" class="input" placeholder="Paste data here from excel"></textarea>
+            <div class="caption">Paste data here from excel</div>
           </div>
 
           <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
@@ -313,8 +315,8 @@ label{display:block;margin-bottom:6px;font-weight:700;color:#0b8b80}
         <!-- Owner UI copied/adapted from 2tabs.txt -->
         <div class="k-stage" style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;">
           <div class="card" style="flex:1;min-width:280px;">
-            <textarea id="inputOwner" class="input" placeholder="Paste data here"></textarea>
-            <div class="caption">Paste data here</div>
+            <textarea id="inputOwner" class="input" placeholder="Paste data here from excel"></textarea>
+            <div class="caption">Paste data here from excel</div>
           </div>
 
           <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
@@ -332,7 +334,211 @@ label{display:block;margin-bottom:6px;font-weight:700;color:#0b8b80}
       </div>
     </section>
 
-  </main>
+  
+<section id="tab7" class="panel">
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TXT → Owner & Khasara Extractor</title>
+<style>
+  body{font-family: "Noto Sans", sans-serif; padding:20px; max-width:900px; margin:auto;}
+  h1{font-size:1.2rem}
+  label{display:block; margin-top:12px}
+  textarea{width:100%; height:200px; margin-top:6px; font-family:monospace; white-space:pre-wrap;}
+  .row{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
+  button{padding:8px 12px; cursor:pointer}
+  .box{border:1px solid #ddd; padding:12px; border-radius:6px; background:#fafafa; margin-top:12px}
+  .small{font-size:0.9rem; color:#444}
+</style>
+</head>
+<body>
+  <h1>TXT → Owner & Khasara Extractor (जैसा निर्देश)</h1>
+  <p class="small">.txt फ़ाइल अपलोड करें — Section-1 से नाम और हिस्सा, Section-2 से खसरा व रकवा अलग बॉक्स में दिखेंगे।</p>
+
+  <label>1) .txt फ़ाइल चुनें:
+    <input id="fileInput" type="file" accept=".txt,text/plain" />
+  </label>
+
+  <div class="box">
+    <strong>Section-1 → Owner & Share (निकाला हुआ)</strong>
+    <div class="row">
+      <button id="copyOwners">Copy Owners</button>
+      <button id="downloadOwners">Download Owners (.txt)</button>
+    </div>
+    <textarea id="ownersOut" placeholder="यहाँ नाम — हिस्सा दिखेगा..." readonly></textarea>
+  </div>
+
+  <div class="box">
+    <strong>Section-2 → Khasara & Rakava (निकाला हुआ)</strong>
+    <div class="row">
+      <button id="copyKhasara">Copy Khasara</button>
+      <button id="downloadKhasara">Download Khasara (.txt)</button>
+    </div>
+    <textarea id="khasaraOut" placeholder="यहाँ खसरा रकवा दिखेगा..." readonly></textarea>
+  </div>
+
+<script>
+function textFromFile(file, cb){
+  const reader = new FileReader();
+  reader.onload = e => cb(String(e.target.result || ''));
+  reader.readAsText(file, 'utf-8');
+}
+
+function splitLines(txt){
+  return txt.replace(/\r/g,'').split('\n');
+}
+
+function detectSections(lines){
+  const all = lines.map(l=>l.trim());
+  const owners = [], khasara = [];
+  let currentBlock = [], inOwner = false;
+
+  function flushBlock(){
+    if(currentBlock.length){
+      // अगर इस ब्लॉक में fraction या "भाग" है → Owner block माने
+      const hasShare = currentBlock.some(l => /\d+\s*\/\s*\d+/.test(l) || /भाग/.test(l));
+      const hasKhasara = currentBlock.some(l => /\(S\)/.test(l));
+      if(hasKhasara){
+        khasara.push(...currentBlock);
+        inOwner = false; // अब से Owner नहीं
+      }
+      else if(hasShare || inOwner){
+        owners.push([...currentBlock]);
+        inOwner = true;
+      }
+      currentBlock = [];
+    }
+  }
+
+  for(const l of all){
+    if(l === ''){
+      flushBlock();
+    } else {
+      currentBlock.push(l);
+    }
+  }
+  flushBlock();
+  return {sec1: owners, sec2: khasara};
+}
+
+function parseOwners(blocks){
+  const results = [];
+  for (const b of blocks) {
+    const name = b.find(x => x) || '';
+    let share = '';
+
+    // 1) पूरी block में fraction खोजें (जैसे 3/24)
+    for (const line of b) {
+      const m = line.match(/(\d+\s*\/\s*\d+)/);
+      if (m) { share = m[1].trim(); break; }
+    }
+
+    // 2) अगर fraction न मिले तो "भाग" शब्द वाली लाइन खोजें
+    if (!share) {
+      const partLine = b.find(x => /भाग/.test(x));
+      if (partLine) {
+        const m2 = partLine.match(/(\d+(?:\.\d+)?)/); // कोई भी नंबर ले लो
+        if (m2) share = m2[1].trim();
+      }
+    }
+
+    // 3) अगर फिर भी न मिले तो तीसरी लाइन को fallback के रूप में लो
+    if (!share && b.length >= 3) {
+      const m3 = b[2].match(/(\d+(?:\.\d+)?)/);
+      if (m3) share = m3[1].trim();
+    }
+
+    results.push({ name: name.trim(), share });
+  }
+  return results;
+}
+
+function parseKhasara(sec2Lines){
+  const results = [];
+  for(let i=0;i<sec2Lines.length;i++){
+    if(/\(S\)/.test(sec2Lines[i])){
+      const khasaraRaw = sec2Lines[i].replace(/\(S\)/g,'').trim();
+      let rak = '';
+      for(let j=i+1;j<Math.min(i+6, sec2Lines.length); j++){
+        if(/हेक्टेयर/.test(sec2Lines[j])){
+          const m = sec2Lines[j].match(/([0-9]+(?:\.[0-9]+)?)\s*हेक्टेयर/);
+          if(m) rak = m[1].trim();
+          else rak = sec2Lines[j].replace('हेक्टेयर','').trim();
+          break;
+        }
+      }
+      results.push({khasara: khasaraRaw, rakava: rak});
+    }
+  }
+  return results;
+}
+
+function formatOwnersList(list){
+  return list.map(it => it.name && it.share ? `${it.name} ${it.share}` :
+                        it.name ? it.name : it.share)
+             .filter(Boolean)
+             .join(', ');
+}
+
+function formatKhasaraList(list){
+  let total = 0;
+  const out = list.map(it => {
+    const val = parseFloat(it.rakava.replace(',', '.')) || 0;
+    total += val;
+    return `${it.khasara} रकवा ${it.rakava}हे.,`;
+  }).join(' ');
+  const count = list.length;
+  const totalStr = total.toFixed(4);
+  return out + ` किता ${count} कुल रकवा ${totalStr}हे.`;
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  textFromFile(file, txt => {
+    const lines = splitLines(txt);
+    const {sec1, sec2} = detectSections(lines);
+
+document.getElementById('ownersOut').value = '';
+document.getElementById('khasaraOut').value = '';
+
+
+    const owners = parseOwners(sec1);
+    document.getElementById('ownersOut').value = formatOwnersList(owners);
+
+    const khas = parseKhasara(sec2);
+    document.getElementById('khasaraOut').value = formatKhasaraList(khas);
+  });
+});
+
+// ✅ Copy & Download Buttons Restore
+function copyToClipboard(id){
+  const ta = document.getElementById(id);
+  ta.select();
+  ta.setSelectionRange(0, 999999);
+  document.execCommand('copy');
+  alert('कॉपी हो गया!');
+}
+
+function downloadText(filename, text){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:'text/plain'}));
+  a.download = filename;
+  a.click();
+}
+
+document.getElementById('copyOwners').addEventListener('click', ()=>copyToClipboard('ownersOut'));
+document.getElementById('copyKhasara').addEventListener('click', ()=>copyToClipboard('khasaraOut'));
+document.getElementById('downloadOwners').addEventListener('click', ()=>downloadText('owners_extracted.txt', document.getElementById('ownersOut').value));
+document.getElementById('downloadKhasara').addEventListener('click', ()=>downloadText('khasara_extracted.txt', document.getElementById('khasaraOut').value));
+</script>
+</body>
+</html>
+
+</section>
+</main>
   <footer>Developed with care by Manish (7869731689) · Local (client-side) HTML tool · Data stays in your browser only</footer>
 </div>
 
@@ -750,4 +956,3 @@ window.addEventListener('load', function(){
 
 </body>
 </html>
-
